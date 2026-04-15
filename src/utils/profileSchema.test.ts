@@ -2,7 +2,7 @@ import { validateProfileSchema } from '../utils/profileSchema';
 
 describe('Profile Schema Validation', () => {
   const validPessoaJuridica = {
-    type: 'juridica',
+    type: 'juridica' as const,
     cnpj: '11222333000181',
     cpf: '11144477735',
     name: 'Empresa Exemplo',
@@ -21,7 +21,7 @@ describe('Profile Schema Validation', () => {
   };
 
   const validPessoaFisica = {
-    type: 'fisica',
+    type: 'fisica' as const,
     cpf: '11144477735',
     name: 'João da Silva',
     phone: '11999999999',
@@ -152,5 +152,34 @@ describe('Profile Schema Validation', () => {
     });
     expect(result.valid).toBe(false);
     expect(result.errors).toContain('state is required');
+  });
+
+  it('should reject when number is missing', () => {
+    const result = validateProfileSchema({
+      ...validPessoaFisica,
+      number: '',
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('number is required');
+  });
+
+  it('should reject when city is missing', () => {
+    const result = validateProfileSchema({
+      ...validPessoaFisica,
+      city: '',
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('city is required');
+  });
+
+  it('should reject when neighborhood is missing', () => {
+    const result = validateProfileSchema({
+      ...validPessoaFisica,
+      neighborhood: '',
+    });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain(
+      'neighborhood is required'
+    );
   });
 });
