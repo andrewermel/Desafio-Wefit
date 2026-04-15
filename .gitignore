@@ -16,6 +16,7 @@ data/
 dist/
 build/
 *.js
+!jest.config.js
 !src/**/*.js
 
 # IDEs
