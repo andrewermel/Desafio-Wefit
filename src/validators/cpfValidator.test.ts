@@ -47,11 +47,6 @@ describe('CPF Validator', () => {
       expect(result).toBe(false);
     });
 
-    it('should validate another valid CPF', () => {
-      const result = validateCPF('10761934503');
-      expect(result).toBe(true);
-    });
-
     it('should reject another invalid CPF', () => {
       const result = validateCPF('10761934502');
       expect(result).toBe(false);
