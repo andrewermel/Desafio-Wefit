@@ -8,7 +8,7 @@ node_modules/
 
 # Database volumes
 data/
-*.sql
+*.sql.dump
 
 # Build output
 dist/
