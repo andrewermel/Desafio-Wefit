@@ -105,8 +105,17 @@ export const updateProfileService = async (
     ...(updates.telephone !== undefined && {
       telephone: sanitizePhone(updates.telephone),
     }),
+    ...(updates.cep !== undefined && {
+      cep: sanitizeCEP(updates.cep),
+    }),
     ...(updates.street !== undefined && {
       street: sanitizeString(updates.street),
+    }),
+    ...(updates.number !== undefined && {
+      number: sanitizeString(updates.number),
+    }),
+    ...(updates.complement !== undefined && {
+      complement: sanitizeString(updates.complement),
     }),
     ...(updates.city !== undefined && {
       city: sanitizeString(updates.city),
@@ -114,13 +123,20 @@ export const updateProfileService = async (
     ...(updates.neighborhood !== undefined && {
       neighborhood: sanitizeString(updates.neighborhood),
     }),
-    ...(updates.number !== undefined && {
-      number: sanitizeString(updates.number),
-    }),
     ...(updates.state !== undefined && {
       state: sanitizeString(updates.state),
     }),
   };
+
+  if (
+    sanitized.email &&
+    sanitized.email !== profile.email
+  ) {
+    const existing = await findByEmail(sanitized.email);
+    if (existing) {
+      throw new Error('email already registered');
+    }
+  }
 
   const affectedRows = await updateProfile(id, sanitized);
 

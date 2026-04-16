@@ -83,8 +83,11 @@ export const getProfileController = async (
 
     const profile = await getProfileByIdService(id);
     res.status(200).json(profile);
-  } catch (error: any) {
-    const message = error.message || 'unknown error';
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'internal server error';
 
     if (message === 'profile not found') {
       res
@@ -109,7 +112,7 @@ export const getAllProfilesController = async (
     res
       .status(200)
       .json({ profiles, total: profiles.length });
-  } catch (error: any) {
+  } catch (error: unknown) {
     res.status(500).json({
       error: 'internal server error',
       code: 'INTERNAL_ERROR',
@@ -134,8 +137,11 @@ export const updateProfileController = async (
 
     const result = await updateProfileService(id, req.body);
     res.status(200).json(result);
-  } catch (error: any) {
-    const message = error.message || 'unknown error';
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'internal server error';
 
     if (message === 'profile not found') {
       res
@@ -144,25 +150,14 @@ export const updateProfileController = async (
       return;
     }
 
-    const knownValidationErrors = [
-      'invalid email format',
-      'email already registered',
-      'cpf already registered',
-      'invalid cpf',
-      'name is required',
-      'email is required',
-      'cpf is required',
-      'phone is required',
-      'birthDate is required',
-      'street is required',
-      'number is required',
-      'city is required',
-      'neighborhood is required',
-      'state is required',
-      'terms must be accepted',
-    ];
+    if (CONFLICT_ERRORS.includes(message)) {
+      res
+        .status(409)
+        .json({ error: message, code: 'CONFLICT' });
+      return;
+    }
 
-    if (knownValidationErrors.includes(message)) {
+    if (message === 'failed to update profile') {
       res
         .status(400)
         .json({ error: message, code: 'VALIDATION_ERROR' });
@@ -193,8 +188,11 @@ export const deleteProfileController = async (
 
     const result = await deleteProfileService(id);
     res.status(200).json(result);
-  } catch (error: any) {
-    const message = error.message || 'unknown error';
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'internal server error';
 
     if (message === 'profile not found') {
       res

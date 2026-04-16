@@ -20,7 +20,6 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/index.ts',
     '!src/database/createTables.ts',
-    '!src/database/migrations/**',
     '!src/middlewares/**',
     '!src/__tests__/**',
   ],

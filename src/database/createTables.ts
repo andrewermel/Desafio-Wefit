@@ -1,6 +1,28 @@
-import fs from 'fs';
-import path from 'path';
 import mysql from 'mysql2/promise';
+
+const CREATE_PROFILES_TABLE = `
+CREATE TABLE IF NOT EXISTS profiles (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  type ENUM('fisica', 'juridica') NOT NULL,
+  cnpj VARCHAR(14) NULL,
+  cpf VARCHAR(11) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  phone VARCHAR(20) NOT NULL,
+  telephone VARCHAR(20) NULL,
+  email VARCHAR(255) NOT NULL,
+  cep VARCHAR(8) NOT NULL,
+  street VARCHAR(255) NOT NULL,
+  number VARCHAR(20) NOT NULL,
+  complement VARCHAR(255) NULL,
+  city VARCHAR(100) NOT NULL,
+  neighborhood VARCHAR(100) NOT NULL,
+  state CHAR(2) NOT NULL,
+  accepted_terms TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_email (email),
+  UNIQUE KEY uq_cpf (cpf)
+)`;
 
 export const runMigrations = async () => {
   const host = process.env.DB_HOST || 'localhost';
@@ -20,14 +42,7 @@ export const runMigrations = async () => {
 
   console.log('✓ Connected to database');
 
-  const migrationPath = path.join(
-    __dirname,
-    'migrations',
-    'create_profiles_table.sql'
-  );
-  const sql = fs.readFileSync(migrationPath, 'utf8');
-
-  await connection.execute(sql);
+  await connection.execute(CREATE_PROFILES_TABLE);
   console.log('✓ Tables created successfully');
 
   await connection.end();
