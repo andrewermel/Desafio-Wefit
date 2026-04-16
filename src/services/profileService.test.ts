@@ -184,4 +184,170 @@ describe('Profile Service', () => {
       ).not.toHaveBeenCalled();
     });
   });
+
+  describe('getProfileByIdService', () => {
+    it('should return profile when exists', async () => {
+      const mockProfile = {
+        id: 1,
+        cpf: '11144477735',
+        email: 'joao@example.com',
+      };
+      mockRepository.getById.mockResolvedValueOnce(
+        mockProfile as any
+      );
+
+      const { getProfileByIdService } =
+        await import('../services/profileService');
+      const result = await getProfileByIdService(1);
+
+      expect(result).toEqual(mockProfile);
+    });
+
+    it('should throw 404 error when profile not found', async () => {
+      mockRepository.getById.mockResolvedValueOnce(null);
+
+      const { getProfileByIdService } =
+        await import('../services/profileService');
+
+      await expect(
+        getProfileByIdService(999)
+      ).rejects.toThrow('profile not found');
+    });
+  });
+
+  describe('getAllProfilesService', () => {
+    it('should return all profiles', async () => {
+      const mockProfiles = [
+        { id: 1, email: 'user1@example.com' },
+        { id: 2, email: 'user2@example.com' },
+      ];
+      mockRepository.getAll.mockResolvedValueOnce(
+        mockProfiles as any
+      );
+
+      const { getAllProfilesService } =
+        await import('../services/profileService');
+      const result = await getAllProfilesService();
+
+      expect(result).toEqual(mockProfiles);
+      expect(result).toHaveLength(2);
+    });
+
+    it('should return empty array when no profiles exist', async () => {
+      mockRepository.getAll.mockResolvedValueOnce([]);
+
+      const { getAllProfilesService } =
+        await import('../services/profileService');
+      const result = await getAllProfilesService();
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('updateProfileService', () => {
+    it('should update profile successfully', async () => {
+      mockRepository.getById.mockResolvedValueOnce({
+        id: 1,
+      } as any);
+      mockRepository.updateProfile.mockResolvedValueOnce(1);
+
+      const { updateProfileService } =
+        await import('../services/profileService');
+      const result = await updateProfileService(1, {
+        name: 'João Updated',
+      });
+
+      expect(result).toEqual({
+        message: 'profile updated',
+      });
+    });
+
+    it('should throw error when profile not found for update', async () => {
+      mockRepository.getById.mockResolvedValueOnce(null);
+
+      const { updateProfileService } =
+        await import('../services/profileService');
+
+      await expect(
+        updateProfileService(999, { name: 'Test' })
+      ).rejects.toThrow('profile not found');
+    });
+
+    it('should not update if nothing was affected', async () => {
+      mockRepository.getById.mockResolvedValueOnce({
+        id: 1,
+      } as any);
+      mockRepository.updateProfile.mockResolvedValueOnce(0);
+
+      const { updateProfileService } =
+        await import('../services/profileService');
+
+      await expect(
+        updateProfileService(1, { name: 'Test' })
+      ).rejects.toThrow('failed to update profile');
+    });
+
+    it('should allowed partial updates', async () => {
+      mockRepository.getById.mockResolvedValueOnce({
+        id: 1,
+      } as any);
+      mockRepository.updateProfile.mockResolvedValueOnce(1);
+
+      const { updateProfileService } =
+        await import('../services/profileService');
+      const result = await updateProfileService(1, {
+        name: 'Only Name Updated',
+      });
+
+      expect(result).toBeDefined();
+      expect(
+        mockRepository.updateProfile
+      ).toHaveBeenCalledWith(1, {
+        name: 'Only Name Updated',
+      });
+    });
+  });
+
+  describe('deleteProfileService', () => {
+    it('should delete profile successfully', async () => {
+      mockRepository.getById.mockResolvedValueOnce({
+        id: 1,
+      } as any);
+      mockRepository.deleteProfile.mockResolvedValueOnce(1);
+
+      const { deleteProfileService } =
+        await import('../services/profileService');
+      const result = await deleteProfileService(1);
+
+      expect(result).toEqual({
+        message: 'profile deleted successfully',
+      });
+    });
+
+    it('should throw error when profile not found for deletion', async () => {
+      mockRepository.getById.mockResolvedValueOnce(null);
+
+      const { deleteProfileService } =
+        await import('../services/profileService');
+
+      await expect(
+        deleteProfileService(999)
+      ).rejects.toThrow('profile not found');
+    });
+
+    it('should call deleteProfile with correct id', async () => {
+      mockRepository.getById.mockResolvedValueOnce({
+        id: 42,
+      } as any);
+      mockRepository.deleteProfile.mockResolvedValueOnce(1);
+
+      const { deleteProfileService } =
+        await import('../services/profileService');
+      await deleteProfileService(42);
+
+      expect(
+        mockRepository.deleteProfile
+      ).toHaveBeenCalledWith(42);
+    });
+  });
 });

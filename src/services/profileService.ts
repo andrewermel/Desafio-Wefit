@@ -3,6 +3,10 @@ import {
   createProfile,
   findByEmail,
   findByCpf,
+  getById,
+  getAll,
+  updateProfile,
+  deleteProfile,
 } from '../repositories/profileRepository';
 import { validateProfileSchema } from '../utils/profileSchema';
 import {
@@ -61,4 +65,50 @@ export const createProfileService = async (
   const id = await createProfile(sanitized);
 
   return { id };
+};
+
+export const getProfileByIdService = async (id: number) => {
+  const profile = await getById(id);
+
+  if (!profile) {
+    throw new Error('profile not found');
+  }
+
+  return profile;
+};
+
+export const getAllProfilesService = async () => {
+  const profiles = await getAll();
+  return profiles;
+};
+
+export const updateProfileService = async (
+  id: number,
+  updates: Partial<Profile>
+) => {
+  const profile = await getById(id);
+
+  if (!profile) {
+    throw new Error('profile not found');
+  }
+
+  const affectedRows = await updateProfile(id, updates);
+
+  if (affectedRows === 0) {
+    throw new Error('failed to update profile');
+  }
+
+  return { message: 'profile updated' };
+};
+
+export const deleteProfileService = async (id: number) => {
+  const profile = await getById(id);
+
+  if (!profile) {
+    throw new Error('profile not found');
+  }
+
+  await deleteProfile(id);
+
+  return { message: 'profile deleted successfully' };
 };
