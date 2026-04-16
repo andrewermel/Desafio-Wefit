@@ -6,11 +6,6 @@ import {
   updateProfileService,
   deleteProfileService,
 } from '../services/profileService';
-import {
-  sanitizeEmail,
-  sanitizePhone,
-  sanitizeString,
-} from '../utils/sanitizer';
 
 const CONFLICT_ERRORS = [
   'email already registered',
@@ -137,40 +132,7 @@ export const updateProfileController = async (
       return;
     }
 
-    const sanitized = {
-      ...(req.body.name !== undefined && {
-        name: sanitizeString(req.body.name),
-      }),
-      ...(req.body.email !== undefined && {
-        email: sanitizeEmail(req.body.email),
-      }),
-      ...(req.body.phone !== undefined && {
-        phone: sanitizePhone(req.body.phone),
-      }),
-      ...(req.body.telephone !== undefined && {
-        telephone: sanitizePhone(req.body.telephone),
-      }),
-      ...(req.body.street !== undefined && {
-        street: sanitizeString(req.body.street),
-      }),
-      ...(req.body.city !== undefined && {
-        city: sanitizeString(req.body.city),
-      }),
-      ...(req.body.neighborhood !== undefined && {
-        neighborhood: sanitizeString(req.body.neighborhood),
-      }),
-      ...(req.body.number !== undefined && {
-        number: sanitizeString(req.body.number),
-      }),
-      ...(req.body.state !== undefined && {
-        state: sanitizeString(req.body.state),
-      }),
-    };
-
-    const result = await updateProfileService(
-      id,
-      sanitized
-    );
+    const result = await updateProfileService(id, req.body);
     res.status(200).json(result);
   } catch (error: any) {
     const message = error.message || 'unknown error';

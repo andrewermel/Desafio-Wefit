@@ -30,5 +30,3 @@ services:
     depends_on:
       mysqldb:
         condition: service_healthy
-    volumes:
-      - ./src:/app/src

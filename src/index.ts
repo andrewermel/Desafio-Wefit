@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import profileRoutes from './routes/profileRoutes';
 import { errorHandler } from './middlewares/errorHandler';
+import { runMigrations } from './database/createTables';
 
 export const app = express();
 
@@ -19,9 +20,16 @@ app.use(profileRoutes);
 app.use(errorHandler);
 
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => {
-    console.log(`Escutando na porta ${port}`);
-  });
+  runMigrations()
+    .then(() => {
+      app.listen(port, () => {
+        console.log(`Escutando na porta ${port}`);
+      });
+    })
+    .catch(error => {
+      console.error('Falha ao iniciar:', error);
+      process.exit(1);
+    });
 }
 
 export default app;

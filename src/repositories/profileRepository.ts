@@ -72,16 +72,37 @@ export const getAll = async (): Promise<ProfileRow[]> => {
   return rows as ProfileRow[];
 };
 
+const ALLOWED_UPDATE_COLUMNS = [
+  'name',
+  'email',
+  'phone',
+  'telephone',
+  'street',
+  'number',
+  'complement',
+  'city',
+  'neighborhood',
+  'state',
+  'cep',
+];
+
 export const updateProfile = async (
   id: number,
   updates: Partial<Profile>
 ): Promise<number> => {
-  // Build dynamic SET clause
-  const setClause = Object.keys(updates)
-    .map(key => `${key} = ?`)
+  const safeEntries = Object.entries(updates).filter(
+    ([key]) => ALLOWED_UPDATE_COLUMNS.includes(key)
+  );
+
+  if (safeEntries.length === 0) {
+    return 0;
+  }
+
+  const setClause = safeEntries
+    .map(([key]) => `${key} = ?`)
     .join(', ');
 
-  const values = [...Object.values(updates), id];
+  const values = [...safeEntries.map(([, v]) => v), id];
 
   const [result] = await pool.execute<ResultSetHeader>(
     `UPDATE profiles SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
