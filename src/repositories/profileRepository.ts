@@ -52,3 +52,52 @@ export const findByCpf = async (
 
   return rows.length > 0 ? (rows[0] as ProfileRow) : null;
 };
+
+export const getById = async (
+  id: number
+): Promise<ProfileRow | null> => {
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    'SELECT * FROM profiles WHERE id = ? LIMIT 1',
+    [id]
+  );
+
+  return rows.length > 0 ? (rows[0] as ProfileRow) : null;
+};
+
+export const getAll = async (): Promise<ProfileRow[]> => {
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    'SELECT * FROM profiles ORDER BY created_at DESC'
+  );
+
+  return rows as ProfileRow[];
+};
+
+export const updateProfile = async (
+  id: number,
+  updates: Partial<Profile>
+): Promise<number> => {
+  // Build dynamic SET clause
+  const setClause = Object.keys(updates)
+    .map(key => `${key} = ?`)
+    .join(', ');
+
+  const values = [...Object.values(updates), id];
+
+  const [result] = await pool.execute<ResultSetHeader>(
+    `UPDATE profiles SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+    values
+  );
+
+  return result.affectedRows;
+};
+
+export const deleteProfile = async (
+  id: number
+): Promise<number> => {
+  const [result] = await pool.execute<ResultSetHeader>(
+    'DELETE FROM profiles WHERE id = ?',
+    [id]
+  );
+
+  return result.affectedRows;
+};

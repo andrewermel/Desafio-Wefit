@@ -2,6 +2,10 @@ import {
   createProfile,
   findByEmail,
   findByCpf,
+  getById,
+  getAll,
+  updateProfile,
+  deleteProfile,
 } from '../repositories/profileRepository';
 import pool from '../database/connection';
 import { Profile } from '../models/Profile';
@@ -144,6 +148,160 @@ describe('Profile Repository', () => {
         .mock.calls[0];
       expect(sql).toContain('cpf');
       expect(values).toContain('11144477735');
+    });
+  });
+
+  describe('getById', () => {
+    it('should return profile when id exists', async () => {
+      const mockRow = {
+        id: 42,
+        cpf: '11144477735',
+        email: 'joao@example.com',
+        name: 'João',
+      };
+      (mockPool.execute as jest.Mock).mockResolvedValueOnce(
+        [[mockRow]]
+      );
+
+      const result = await getById(42);
+
+      expect(result).toEqual(mockRow);
+      expect(mockPool.execute).toHaveBeenCalledWith(
+        expect.stringContaining('SELECT'),
+        [42]
+      );
+    });
+
+    it('should return null when id does not exist', async () => {
+      (mockPool.execute as jest.Mock).mockResolvedValueOnce(
+        [[]]
+      );
+
+      const result = await getById(999);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('getAll', () => {
+    it('should return all profiles', async () => {
+      const mockRows = [
+        {
+          id: 1,
+          email: 'user1@example.com',
+          cpf: '11144477735',
+        },
+        {
+          id: 2,
+          email: 'user2@example.com',
+          cpf: '22244477735',
+        },
+      ];
+      (mockPool.execute as jest.Mock).mockResolvedValueOnce(
+        [mockRows]
+      );
+
+      const result = await getAll();
+
+      expect(result).toEqual(mockRows);
+      expect(result).toHaveLength(2);
+    });
+
+    it('should return empty array when no profiles exist', async () => {
+      (mockPool.execute as jest.Mock).mockResolvedValueOnce(
+        [[]]
+      );
+
+      const result = await getAll();
+
+      expect(result).toEqual([]);
+    });
+
+    it('should call SELECT without WHERE clause', async () => {
+      (mockPool.execute as jest.Mock).mockResolvedValueOnce(
+        [[]]
+      );
+
+      await getAll();
+
+      const [sql] = (mockPool.execute as jest.Mock).mock
+        .calls[0];
+      expect(sql).toContain('SELECT');
+      expect(sql).not.toContain('WHERE');
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('should update profile and return affected rows', async () => {
+      (mockPool.execute as jest.Mock).mockResolvedValueOnce(
+        [{ affectedRows: 1 }]
+      );
+
+      const updateData = { name: 'João Silva Updated' };
+      const result = await updateProfile(42, updateData);
+
+      expect(result).toBe(1);
+      expect(mockPool.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call UPDATE with correct ID', async () => {
+      (mockPool.execute as jest.Mock).mockResolvedValueOnce(
+        [{ affectedRows: 1 }]
+      );
+
+      await updateProfile(42, { name: 'João' });
+
+      const [sql, values] = (mockPool.execute as jest.Mock)
+        .mock.calls[0];
+      expect(sql).toContain('UPDATE');
+      expect(values).toContain(42);
+    });
+
+    it('should return 0 when profile not found', async () => {
+      (mockPool.execute as jest.Mock).mockResolvedValueOnce(
+        [{ affectedRows: 0 }]
+      );
+
+      const result = await updateProfile(999, {
+        name: 'Test',
+      });
+
+      expect(result).toBe(0);
+    });
+  });
+
+  describe('deleteProfile', () => {
+    it('should delete profile and return affected rows', async () => {
+      (mockPool.execute as jest.Mock).mockResolvedValueOnce(
+        [{ affectedRows: 1 }]
+      );
+
+      const result = await deleteProfile(42);
+
+      expect(result).toBe(1);
+    });
+
+    it('should call DELETE with correct ID', async () => {
+      (mockPool.execute as jest.Mock).mockResolvedValueOnce(
+        [{ affectedRows: 1 }]
+      );
+
+      await deleteProfile(42);
+
+      const [sql, values] = (mockPool.execute as jest.Mock)
+        .mock.calls[0];
+      expect(sql).toContain('DELETE');
+      expect(values).toContain(42);
+    });
+
+    it('should return 0 when profile not found', async () => {
+      (mockPool.execute as jest.Mock).mockResolvedValueOnce(
+        [{ affectedRows: 0 }]
+      );
+
+      const result = await deleteProfile(999);
+
+      expect(result).toBe(0);
     });
   });
 });
