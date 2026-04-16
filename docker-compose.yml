@@ -13,3 +13,22 @@ services:
       - 3306:3306
     volumes:
       - ./data/:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      timeout: 20s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      - DB_HOST=mysqldb
+      - NODE_ENV=production
+    ports:
+      - 3000:3000
+    depends_on:
+      mysqldb:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
