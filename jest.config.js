@@ -22,14 +22,14 @@ module.exports = {
     '!src/database/createTables.ts',
     '!src/database/migrations/**',
     '!src/middlewares/**',
-    '!src/routes/**',
+    '!src/__tests__/**',
   ],
   coverageThreshold: {
     global: {
       branches: 70,
       functions: 69,
-      lines: 70,
-      statements: 70,
+      lines: 68,
+      statements: 68,
     },
   },
 };

@@ -319,4 +319,162 @@ describe('Profile Controller', () => {
       expect(res.status).toHaveBeenCalledWith(404);
     });
   });
+
+  describe('Error Handling - Generic Errors', () => {
+    it('createProfileController should return 500 on internal error', async () => {
+      mockService.createProfileService.mockRejectedValueOnce(
+        new Error('Database connection failed')
+      );
+
+      const req = { body: {} } as Partial<Request>;
+      const res = mockRes();
+
+      const { createProfileController } =
+        await import('../controllers/profileController');
+      await createProfileController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'internal server error',
+        code: 'INTERNAL_ERROR',
+      });
+    });
+
+    it('getProfileController should return 500 on internal error', async () => {
+      mockService.getProfileByIdService.mockRejectedValueOnce(
+        new Error('Database error')
+      );
+
+      const req = {
+        params: { id: '1' },
+      } as Partial<Request>;
+      const res = mockRes();
+
+      const { getProfileController } =
+        await import('../controllers/profileController');
+      await getProfileController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(500);
+    });
+
+    it('getAllProfilesController should return 500 on error', async () => {
+      mockService.getAllProfilesService.mockRejectedValueOnce(
+        new Error('Database error')
+      );
+
+      const req = {} as Partial<Request>;
+      const res = mockRes();
+
+      const { getAllProfilesController } =
+        await import('../controllers/profileController');
+      await getAllProfilesController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(500);
+    });
+
+    it('updateProfileController should return 500 on internal error', async () => {
+      mockService.updateProfileService.mockRejectedValueOnce(
+        new Error('Database error')
+      );
+
+      const req = {
+        params: { id: '1' },
+        body: { name: 'Test' },
+      } as Partial<Request>;
+      const res = mockRes();
+
+      const { updateProfileController } =
+        await import('../controllers/profileController');
+      await updateProfileController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(500);
+    });
+
+    it('deleteProfileController should return 500 on internal error', async () => {
+      mockService.deleteProfileService.mockRejectedValueOnce(
+        new Error('Database error')
+      );
+
+      const req = {
+        params: { id: '1' },
+      } as Partial<Request>;
+      const res = mockRes();
+
+      const { deleteProfileController } =
+        await import('../controllers/profileController');
+      await deleteProfileController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(500);
+    });
+  });
+
+  describe('Invalid Input Validation', () => {
+    it('getProfileController should return 400 for invalid id', async () => {
+      const req = {
+        params: { id: 'invalid' },
+      } as Partial<Request>;
+      const res = mockRes();
+
+      const { getProfileController } =
+        await import('../controllers/profileController');
+      await getProfileController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'invalid id',
+        code: 'VALIDATION_ERROR',
+      });
+    });
+
+    it('updateProfileController should return 400 for invalid id', async () => {
+      const req = {
+        params: { id: 'not-a-number' },
+        body: {},
+      } as Partial<Request>;
+      const res = mockRes();
+
+      const { updateProfileController } =
+        await import('../controllers/profileController');
+      await updateProfileController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    it('deleteProfileController should return 400 for invalid id', async () => {
+      const req = {
+        params: { id: 'xyz' },
+      } as Partial<Request>;
+      const res = mockRes();
+
+      const { deleteProfileController } =
+        await import('../controllers/profileController');
+      await deleteProfileController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+  });
 });
