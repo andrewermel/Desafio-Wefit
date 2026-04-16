@@ -11,7 +11,6 @@ describe('POST /cadastro - Fase 5 Integration Tests', () => {
 
   afterAll(async () => {
     await pool.query('DELETE FROM profiles');
-    await pool.end();
   });
 
   it('should create pessoa fisica and return 201', async () => {
@@ -157,5 +156,121 @@ describe('POST /cadastro - Fase 5 Integration Tests', () => {
     const res = await req.get('/ping');
     expect(res.status).toBe(200);
     expect(res.text).toBe('pong');
+  });
+});
+
+describe('CRUD Endpoints - Fase 7 Integration Tests', () => {
+  let createdProfileId: number;
+
+  beforeAll(async () => {
+    await pool.query('DELETE FROM profiles');
+
+    const createRes = await req.post('/cadastro').send({
+      type: 'fisica',
+      cpf: '547.605.070-19',
+      name: 'CRUD Test Profile',
+      phone: '(21) 99999-9999',
+      email: 'crud.test@example.com',
+      confirmEmail: 'crud.test@example.com',
+      cep: '20040020',
+      street: 'Rua Test',
+      number: '123',
+      city: 'Rio de Janeiro',
+      neighborhood: 'Centro',
+      state: 'RJ',
+      acceptedTerms: true,
+    });
+
+    createdProfileId = createRes.body.id;
+  });
+
+  afterAll(async () => {
+    await pool.query('DELETE FROM profiles');
+  });
+
+  it('GET /profiles/:id should return 200 with profile data', async () => {
+    const res = await req.get(
+      `/profiles/${createdProfileId}`
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(createdProfileId);
+    expect(res.body.email).toBe('crud.test@example.com');
+    expect(res.body.name).toBe('CRUD Test Profile');
+  });
+
+  it('GET /profiles/:id should return 404 for nonexistent profile', async () => {
+    const res = await req.get('/profiles/9999999');
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe('profile not found');
+  });
+
+  it('GET /profiles should return 200 with all profiles', async () => {
+    const res = await req.get('/profiles');
+    expect(res.status).toBe(200);
+    expect(res.body.profiles).toBeDefined();
+    expect(Array.isArray(res.body.profiles)).toBe(true);
+    expect(res.body.total).toBe(res.body.profiles.length);
+    expect(res.body.total).toBeGreaterThanOrEqual(1);
+  });
+
+  it('PUT /profiles/:id should update profile and return 200', async () => {
+    const res = await req
+      .put(`/profiles/${createdProfileId}`)
+      .send({
+        name: 'Updated CRUD Test',
+        phone: '(21) 98888-8888',
+      });
+    expect(res.status).toBe(200);
+    expect(res.body.name).toBe('Updated CRUD Test');
+    expect(res.body.phone).toBe('21988888888');
+
+    const verifyRes = await req.get(
+      `/profiles/${createdProfileId}`
+    );
+    expect(verifyRes.body.name).toBe('Updated CRUD Test');
+  });
+
+  it('PUT /profiles/:id should return 404 for nonexistent profile', async () => {
+    const res = await req.put('/profiles/9999999').send({
+      name: 'Nonexistent',
+    });
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe('profile not found');
+  });
+
+  it('DELETE /profiles/:id should delete profile and return 200', async () => {
+    const createRes = await req.post('/cadastro').send({
+      type: 'fisica',
+      cpf: '591.525.925-10',
+      name: 'Delete Test Profile',
+      phone: '(21) 97777-7777',
+      email: 'delete.test@example.com',
+      confirmEmail: 'delete.test@example.com',
+      cep: '20040020',
+      street: 'Rua Delete',
+      number: '456',
+      city: 'Rio de Janeiro',
+      neighborhood: 'Centro',
+      state: 'RJ',
+      acceptedTerms: true,
+    });
+
+    const deleteProfileId = createRes.body.id;
+
+    const deleteRes = await req.delete(
+      `/profiles/${deleteProfileId}`
+    );
+    expect(deleteRes.status).toBe(200);
+
+    const verifyRes = await req.get(
+      `/profiles/${deleteProfileId}`
+    );
+    expect(verifyRes.status).toBe(404);
+  });
+
+  it('DELETE /profiles/:id should return 404 for nonexistent profile', async () => {
+    const res = await req.delete('/profiles/9999999');
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe('profile not found');
   });
 });

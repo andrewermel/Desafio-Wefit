@@ -232,8 +232,10 @@ describe('Profile Controller', () => {
     it('should return 200 on successful update', async () => {
       mockService.updateProfileService.mockResolvedValueOnce(
         {
-          message: 'profile updated',
-        }
+          id: 1,
+          name: 'João Updated',
+          email: 'joao@example.com',
+        } as any
       );
 
       const req = {

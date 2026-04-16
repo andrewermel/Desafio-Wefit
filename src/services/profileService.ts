@@ -92,13 +92,44 @@ export const updateProfileService = async (
     throw new Error('profile not found');
   }
 
-  const affectedRows = await updateProfile(id, updates);
+  const sanitized: Partial<Profile> = {
+    ...(updates.name !== undefined && {
+      name: sanitizeString(updates.name),
+    }),
+    ...(updates.email !== undefined && {
+      email: sanitizeEmail(updates.email),
+    }),
+    ...(updates.phone !== undefined && {
+      phone: sanitizePhone(updates.phone),
+    }),
+    ...(updates.telephone !== undefined && {
+      telephone: sanitizePhone(updates.telephone),
+    }),
+    ...(updates.street !== undefined && {
+      street: sanitizeString(updates.street),
+    }),
+    ...(updates.city !== undefined && {
+      city: sanitizeString(updates.city),
+    }),
+    ...(updates.neighborhood !== undefined && {
+      neighborhood: sanitizeString(updates.neighborhood),
+    }),
+    ...(updates.number !== undefined && {
+      number: sanitizeString(updates.number),
+    }),
+    ...(updates.state !== undefined && {
+      state: sanitizeString(updates.state),
+    }),
+  };
+
+  const affectedRows = await updateProfile(id, sanitized);
 
   if (affectedRows === 0) {
     throw new Error('failed to update profile');
   }
 
-  return { message: 'profile updated' };
+  const updatedProfile = await getById(id);
+  return updatedProfile;
 };
 
 export const deleteProfileService = async (id: number) => {

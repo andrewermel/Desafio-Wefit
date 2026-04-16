@@ -246,9 +246,14 @@ describe('Profile Service', () => {
 
   describe('updateProfileService', () => {
     it('should update profile successfully', async () => {
-      mockRepository.getById.mockResolvedValueOnce({
-        id: 1,
-      } as any);
+      mockRepository.getById
+        .mockResolvedValueOnce({
+          id: 1,
+        } as any)
+        .mockResolvedValueOnce({
+          id: 1,
+          name: 'João Updated',
+        } as any);
       mockRepository.updateProfile.mockResolvedValueOnce(1);
 
       const { updateProfileService } =
@@ -258,7 +263,8 @@ describe('Profile Service', () => {
       });
 
       expect(result).toEqual({
-        message: 'profile updated',
+        id: 1,
+        name: 'João Updated',
       });
     });
 
@@ -288,9 +294,14 @@ describe('Profile Service', () => {
     });
 
     it('should allowed partial updates', async () => {
-      mockRepository.getById.mockResolvedValueOnce({
-        id: 1,
-      } as any);
+      mockRepository.getById
+        .mockResolvedValueOnce({
+          id: 1,
+        } as any)
+        .mockResolvedValueOnce({
+          id: 1,
+          name: 'Only Name Updated',
+        } as any);
       mockRepository.updateProfile.mockResolvedValueOnce(1);
 
       const { updateProfileService } =
@@ -300,6 +311,10 @@ describe('Profile Service', () => {
       });
 
       expect(result).toBeDefined();
+      expect(result).toEqual({
+        id: 1,
+        name: 'Only Name Updated',
+      });
       expect(
         mockRepository.updateProfile
       ).toHaveBeenCalledWith(1, {
