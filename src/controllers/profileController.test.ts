@@ -151,4 +151,170 @@ describe('Profile Controller', () => {
       mockService.createProfileService
     ).toHaveBeenCalledWith(body);
   });
+
+  describe('getProfileController', () => {
+    it('should return 200 with profile data', async () => {
+      const mockProfile = {
+        id: 1,
+        email: 'joao@example.com',
+        cpf: '11144477735',
+      };
+      mockService.getProfileByIdService.mockResolvedValueOnce(
+        mockProfile as any
+      );
+
+      const req = {
+        params: { id: '1' },
+      } as Partial<Request>;
+      const res = mockRes();
+
+      const { getProfileController } =
+        await import('../controllers/profileController');
+      await getProfileController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockProfile);
+    });
+
+    it('should return 404 when profile not found', async () => {
+      mockService.getProfileByIdService.mockRejectedValueOnce(
+        new Error('profile not found')
+      );
+
+      const req = {
+        params: { id: '999' },
+      } as Partial<Request>;
+      const res = mockRes();
+
+      const { getProfileController } =
+        await import('../controllers/profileController');
+      await getProfileController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
+  });
+
+  describe('getAllProfilesController', () => {
+    it('should return 200 with all profiles', async () => {
+      const mockProfiles = [
+        { id: 1, email: 'user1@example.com' },
+        { id: 2, email: 'user2@example.com' },
+      ];
+      mockService.getAllProfilesService.mockResolvedValueOnce(
+        mockProfiles as any
+      );
+
+      const req = {} as Partial<Request>;
+      const res = mockRes();
+
+      const { getAllProfilesController } =
+        await import('../controllers/profileController');
+      await getAllProfilesController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        profiles: mockProfiles,
+        total: 2,
+      });
+    });
+  });
+
+  describe('updateProfileController', () => {
+    it('should return 200 on successful update', async () => {
+      mockService.updateProfileService.mockResolvedValueOnce(
+        {
+          message: 'profile updated',
+        }
+      );
+
+      const req = {
+        params: { id: '1' },
+        body: { name: 'João Updated' },
+      } as Partial<Request>;
+      const res = mockRes();
+
+      const { updateProfileController } =
+        await import('../controllers/profileController');
+      await updateProfileController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('should return 404 when profile not found for update', async () => {
+      mockService.updateProfileService.mockRejectedValueOnce(
+        new Error('profile not found')
+      );
+
+      const req = {
+        params: { id: '999' },
+        body: { name: 'Test' },
+      } as Partial<Request>;
+      const res = mockRes();
+
+      const { updateProfileController } =
+        await import('../controllers/profileController');
+      await updateProfileController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
+  });
+
+  describe('deleteProfileController', () => {
+    it('should return 200 on successful deletion', async () => {
+      mockService.deleteProfileService.mockResolvedValueOnce(
+        {
+          message: 'profile deleted successfully',
+        }
+      );
+
+      const req = {
+        params: { id: '1' },
+      } as Partial<Request>;
+      const res = mockRes();
+
+      const { deleteProfileController } =
+        await import('../controllers/profileController');
+      await deleteProfileController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('should return 404 when profile not found for deletion', async () => {
+      mockService.deleteProfileService.mockRejectedValueOnce(
+        new Error('profile not found')
+      );
+
+      const req = {
+        params: { id: '999' },
+      } as Partial<Request>;
+      const res = mockRes();
+
+      const { deleteProfileController } =
+        await import('../controllers/profileController');
+      await deleteProfileController(
+        req as Request,
+        res as unknown as Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
+  });
 });
