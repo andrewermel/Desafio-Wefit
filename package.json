@@ -5,7 +5,9 @@
   "license": "MIT",
   "scripts": {
     "start": "ts-node-dev --files -r tsconfig-paths/register --inspect --ignore-watch node_modules src/index.ts",
-    "test": "jest",
+    "test": "jest --testPathIgnorePatterns='integration'",
+    "test:integration": "jest src/__tests__/integration/ --forceExit",
+    "test:all": "jest --forceExit",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
