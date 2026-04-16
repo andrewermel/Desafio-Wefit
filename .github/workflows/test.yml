@@ -14,6 +14,22 @@ jobs:
       matrix:
         node-version: [18.x, 20.x]
 
+    services:
+      mysql:
+        image: mysql:5.6
+        env:
+          MYSQL_ROOT_PASSWORD: 'root'
+          MYSQL_DATABASE: 'wefit'
+          MYSQL_USER: 'admin'
+          MYSQL_PASSWORD: 'admin123'
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 3306:3306
+
     steps:
       - uses: actions/checkout@v3
 
@@ -23,11 +39,36 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
+      - name: Wait for MySQL
+        run: |
+          npm install -g wait-port
+          wait-port 127.0.0.1:3306
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
+      - name: Create database tables
+        run: |
+          npx ts-node -r tsconfig-paths/register src/database/createTables.ts
+        env:
+          DB_HOST: localhost
+          DB_USER: admin
+          DB_PASSWORD: admin123
+          DB_NAME: wefit
+          DB_PORT: 3306
+
+      - name: Run unit tests
         run: npm test
+
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          DB_HOST: localhost
+          DB_USER: admin
+          DB_PASSWORD: admin123
+          DB_NAME: wefit
+          DB_PORT: 3306
+          NODE_ENV: test
 
       - name: Generate coverage report
         run: npm run test:coverage
