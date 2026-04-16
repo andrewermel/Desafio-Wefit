@@ -3,7 +3,7 @@ import cors from 'cors';
 import profileRoutes from './routes/profileRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 
-const app = express();
+export const app = express();
 
 const port = process.env.PORT || 4568;
 
@@ -18,6 +18,10 @@ app.use(profileRoutes);
 
 app.use(errorHandler);
 
-app.listen(port, () => {
-  console.log(`Escutando na porta ${port}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
+    console.log(`Escutando na porta ${port}`);
+  });
+}
+
+export default app;
